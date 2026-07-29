@@ -78,7 +78,7 @@ def _load_model_and_cascade() -> None:
     # -- Model --
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model file not found: {MODEL_PATH}")
-    model = tf.keras.models.load_model(str(MODEL_PATH))
+    model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
 
     # Capture model.summary() as a string
     buf = StringIO()

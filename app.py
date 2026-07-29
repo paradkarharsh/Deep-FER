@@ -121,7 +121,7 @@ if "history" not in st.session_state:
 def load_assets():
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model file missing at: {MODEL_PATH}")
-    model = tf.keras.models.load_model(str(MODEL_PATH))
+    model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
 
     if not LABEL_MAP_PATH.exists():
         raise FileNotFoundError(f"Label map missing at: {LABEL_MAP_PATH}")
