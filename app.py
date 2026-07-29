@@ -128,8 +128,16 @@ def load_assets():
     with open(LABEL_MAP_PATH) as f:
         label_map = {int(k): v for k, v in json.load(f).items()}
 
-    cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    if not hasattr(cv2, "CascadeClassifier"):
+        raise RuntimeError("OpenCV installed improperly (cv2 missing CascadeClassifier). Ensure opencv-python-headless==4.10.0.84 is installed.")
+
+    cascade_path = getattr(cv2.data, "haarcascades", "") + "haarcascade_frontalface_default.xml"
     face_cascade = cv2.CascadeClassifier(cascade_path)
+    if face_cascade.empty():
+        import os
+        alt_path = os.path.join(os.path.dirname(cv2.__file__), "data", "haarcascade_frontalface_default.xml")
+        face_cascade = cv2.CascadeClassifier(alt_path)
+
     if face_cascade.empty():
         raise RuntimeError("Failed to load OpenCV Haar Cascade Classifier.")
 
