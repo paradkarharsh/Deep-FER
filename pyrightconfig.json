@@ -1,0 +1,18 @@
+{
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+    "**/__pycache__"
+  ],
+  "extraPaths": [
+    "C:/Users/SF314-511-54UM/AppData/Local/Programs/Python/Python311/Lib/site-packages",
+    ".",
+    "backend"
+  ],
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Windows",
+  "typeCheckingMode": "off"
+}
