@@ -71,6 +71,49 @@ model_summary_str: str = ""
 START_TIME: float = time.time()
 
 
+def build_model(input_shape=(48, 48, 1), num_classes=7):
+    inputs = tf.keras.layers.Input(shape=input_shape)
+
+    x = tf.keras.layers.Conv2D(32, 3, padding="same", activation="relu")(inputs)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Conv2D(32, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D()(x)
+    x = tf.keras.layers.Dropout(0.25)(x)
+
+    x = tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D()(x)
+    x = tf.keras.layers.Dropout(0.25)(x)
+
+    x = tf.keras.layers.Conv2D(128, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Conv2D(128, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dense(256, activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    outputs = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
+
+    return tf.keras.models.Model(inputs, outputs, name="DeepFER_CNN")
+
+
+def load_deepfer_model(model_path: Path) -> tf.keras.Model:
+    try:
+        return tf.keras.models.load_model(str(model_path), compile=False)
+    except Exception as exc:
+        print(f"[DeepFER] Standard load_model failed ({exc}). Falling back to architecture + load_weights...")
+        m = build_model()
+        m.load_weights(str(model_path))
+        return m
+
+
 def _load_model_and_cascade() -> None:
     """Load the TF model, label map, and OpenCV Haar cascade once."""
     global model, label_map, face_cascade, model_summary_str
@@ -78,7 +121,7 @@ def _load_model_and_cascade() -> None:
     # -- Model --
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model file not found: {MODEL_PATH}")
-    model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
+    model = load_deepfer_model(MODEL_PATH)
 
     # Capture model.summary() as a string
     buf = StringIO()

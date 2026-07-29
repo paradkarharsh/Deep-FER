@@ -114,6 +114,49 @@ st.markdown(
 if "history" not in st.session_state:
     st.session_state.history = []
 
+def build_model(input_shape=(48, 48, 1), num_classes=7):
+    inputs = tf.keras.layers.Input(shape=input_shape)
+
+    x = tf.keras.layers.Conv2D(32, 3, padding="same", activation="relu")(inputs)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Conv2D(32, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D()(x)
+    x = tf.keras.layers.Dropout(0.25)(x)
+
+    x = tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Conv2D(64, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D()(x)
+    x = tf.keras.layers.Dropout(0.25)(x)
+
+    x = tf.keras.layers.Conv2D(128, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Conv2D(128, 3, padding="same", activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.MaxPooling2D()(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+
+    x = tf.keras.layers.GlobalAveragePooling2D()(x)
+    x = tf.keras.layers.Dense(256, activation="relu")(x)
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    outputs = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
+
+    return tf.keras.models.Model(inputs, outputs, name="DeepFER_CNN")
+
+
+def load_deepfer_model(model_path: Path) -> tf.keras.Model:
+    try:
+        return tf.keras.models.load_model(str(model_path), compile=False)
+    except Exception as exc:
+        print(f"[DeepFER Streamlit] Standard load_model failed ({exc}). Falling back to architecture + load_weights...")
+        m = build_model()
+        m.load_weights(str(model_path))
+        return m
+
+
 # ---------------------------------------------------------------------------
 # Asset Loader
 # ---------------------------------------------------------------------------
@@ -121,7 +164,7 @@ if "history" not in st.session_state:
 def load_assets():
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model file missing at: {MODEL_PATH}")
-    model = tf.keras.models.load_model(str(MODEL_PATH), compile=False)
+    model = load_deepfer_model(MODEL_PATH)
 
     if not LABEL_MAP_PATH.exists():
         raise FileNotFoundError(f"Label map missing at: {LABEL_MAP_PATH}")
