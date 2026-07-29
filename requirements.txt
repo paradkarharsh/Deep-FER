@@ -1,12 +1,12 @@
-tensorflow>=2.15
+tensorflow
 numpy
 pandas
 matplotlib
 seaborn
 scikit-learn
-opencv-python==4.10.0.84
+opencv-python-headless
 streamlit
 pillow
 fastapi
-uvicorn[standard]
+uvicorn
 python-multipart
